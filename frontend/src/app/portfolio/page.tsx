@@ -112,6 +112,7 @@ export default function PortfolioPage() {
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [activeBots, setActiveBots] = useState(0);
   const [totalBots, setTotalBots] = useState(0);
+  const [liveMode, setLiveMode] = useState(false);
   const dayPnlRef = useRef(0);
 
   // ── fetch real data ──────────────────────────────────────────────────────
@@ -150,9 +151,9 @@ export default function PortfolioPage() {
     return () => clearInterval(id);
   }, []);
 
-  // ── live equity ticker — ONLY fires when bots are actively running ────────
+  // ── live equity ticker — ONLY fires when live mode is on AND bots are running ──
   useEffect(() => {
-    if (activeBots === 0) return;           // freeze when no bots are running
+    if (!liveMode || activeBots === 0) return;   // freeze when paused or no bots
     const id = setInterval(() => {
       const tick = (Math.random() - 0.35) * 280_000;
       setEquity(prev => Math.max(prev + tick, BASE_EQUITY * 0.99));
@@ -161,7 +162,7 @@ export default function PortfolioPage() {
       setLastUpdate(new Date());
     }, 1800);
     return () => clearInterval(id);
-  }, [activeBots]);
+  }, [liveMode, activeBots]);
 
   // ── derived metrics from real sessions ──────────────────────────────────
   const backtests = sessions.filter(s => s.session_type === "backtest");
@@ -742,7 +743,7 @@ export default function PortfolioPage() {
 
         <div className="border-t border-slate-800 pt-4 flex items-center justify-between text-xs text-slate-600">
           <span>SmarkQuant Capital Fund · {sessions.length} sessions · {totalTrades} trades</span>
-          <span>Data live from your trading database · Equity refreshes every 1.8s</span>
+          <span>Data live from your trading database · Equity refreshes every 1.8s when Live is ON and bots are active</span>
         </div>
       </div>
     </div>
